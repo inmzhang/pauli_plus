@@ -230,15 +230,11 @@ class Simulator:
         if instruction_name in ["MX", "MY", "RX", "RY", "MRX", "MRY", "MPP"]:
             raise ValueError(f"Only Z basis measurements and resets are supported, not {instruction_name}.")
 
-        if not self.transition_collection.has_table_for(instruction_name):
-            self._tableau_simulator.do(instruction)
-            return
-
         for targets in _split_targets(instruction_name, instruction_targets):
-            table = self._get_satifying_table(instruction_name, targets)
             current_status = self._status_vec.get_status(targets)
             if all(s == 0 for s in current_status):
                 self._tableau_simulator.do(stim.CircuitInstruction(instruction_name, targets, instruction_args))
+            table = self._get_satifying_table(instruction_name, targets)
             if table is None or not add_potential_noise:
                 continue
             sampled_transition = table.sample(current_status, self._rng)
